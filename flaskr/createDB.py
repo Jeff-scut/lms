@@ -7,7 +7,7 @@ def get_db():
             host="45.32.40.85",
             user="jeff",
             password="password",
-            database="linshi",
+            database="lms",
             charset="utf8"
         )
     return g.connect
