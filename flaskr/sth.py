@@ -1,5 +1,5 @@
-from flask import(Blueprint,flash,g,redirect,render_template,request,session,url_for)
-from flaskr.createDB import get_db
+from flask import(Blueprint,g,jsonify)
+from flaskr.createDB import (get_db,close_db)
 import pymysql
 
 bp=Blueprint('sth',__name__)
@@ -8,8 +8,11 @@ bp=Blueprint('sth',__name__)
 def showHello():
     cursor=get_db().cursor()
     try:
-        cursor.execute('INSERT INTO courses values ("wc","nm",6,0,"fuck")')
+        cursor.execute('SELECT * FROM BALABALA')
+        wcnm = cursor.fetchall()
         get_db().commit()
     except:
         get_db().rollback()
-    return render_template('hello.html')
+        print("error:反正就是出错了")
+    close_db()
+    return jsonify(wcnm)
