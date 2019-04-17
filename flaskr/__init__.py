@@ -8,6 +8,10 @@ def create_app(test_config=None):
     app.register_blueprint(download_materials.bp)
     # 蓝图的注册
 
+    @app.route('/hello')
+    def hello():
+        return 'Hello, World!'
+
     from . import postTest
     app.register_blueprint(postTest.bp)
 
