@@ -1,18 +1,17 @@
-import os
 from flask import Flask
-from . import download_materials
+from . import collector
+
 
 def create_app(test_config=None):
     app=Flask(__name__)
 
-    app.register_blueprint(download_materials.bp)
+    app.register_blueprint(collector.bp)
     # 蓝图的注册
 
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
 
-    from . import postTest
-    app.register_blueprint(postTest.bp)
+
 
     return app

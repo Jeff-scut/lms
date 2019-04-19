@@ -5,8 +5,8 @@ def get_db():
     if 'connect' not in g:
         g.connect=pymysql.connect(
             host="45.32.40.85",
-            user="jeff",
-            password="password",
+            user="xiaolin",
+            password="1234567",
             database="lms",
             charset="utf8"
         )
