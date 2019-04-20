@@ -107,7 +107,7 @@ def resource():
 
 
 @bp.route('/discussion',methods=('GET','POST'))
-def resource():
+def discussion():
     cursor=get_db().cursor()
     if request.method=='POST':
         account = request.form['account']
@@ -130,5 +130,3 @@ def resource():
         close_db()
         return jsonify('插入成功')
     return '这是一个GET不是POST'
-
-
