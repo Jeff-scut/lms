@@ -1,10 +1,12 @@
 from flask import(Blueprint,g,jsonify,request)
 from flaskr.createDB import (get_db,close_db)
 import pymysql
+from  flaskr.jwt import login_required
 
 bp=Blueprint('collector',__name__)
 
 @bp.route('/download_materials',methods=('GET','POST'))
+@login_required
 def download_materials():
     cursor=get_db().cursor()
     if request.method=='POST':
@@ -17,12 +19,13 @@ def download_materials():
             value = [account, name, course_id, materials_id, materials_name]
             try:
                 cursor.execute(
-                'insert into download_materials values("1","22","苍天呐","44","55")'
+                'insert into download_materials values(%s,%s,%s,%s,%s)',value
                 )
             except:
                 print("error")
 
             get_db().commit()
+
         except:
             get_db().rollback()
         close_db()
@@ -31,6 +34,7 @@ def download_materials():
 
 
 @bp.route('/materials',methods=('GET','POST'))
+@login_required
 def materials():
     cursor=get_db().cursor()
     if request.method=='POST':
@@ -41,7 +45,7 @@ def materials():
             value = [course_id, materials_id, materials_name]
             try:
                 cursor.execute(
-                'insert into materials values("1","22","苍天呐")'
+                'insert into materials values(%s,%s,%s)',value
                 )
             except:
                 print("error")
@@ -54,6 +58,7 @@ def materials():
 
 
 @bp.route('/learning_progress',methods=('GET','POST'))
+@login_required
 def learning_progress():
     cursor=get_db().cursor()
     if request.method=='POST':
@@ -82,6 +87,7 @@ def learning_progress():
 
 
 @bp.route('/resource',methods=('GET','POST'))
+@login_required
 def resource():
     cursor=get_db().cursor()
     if request.method=='POST':
@@ -107,6 +113,7 @@ def resource():
 
 
 @bp.route('/discussion',methods=('GET','POST'))
+@login_required
 def discussion():
     cursor=get_db().cursor()
     if request.method=='POST':

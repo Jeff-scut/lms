@@ -60,11 +60,14 @@ def login_required(func):
     def wrapper(*args,**kwargs):
         token_to_decode=request.headers['Authorization']
         if not token_to_decode:
-            return redirect('/collector')#此处待修改
+            return redirect('jwt.index')#此处待修改
         payload_content=tokenFeature.get_decoded(tokenFeature,token_to_decode)
-        if payload_content['exp'] < int(time.time()):
-            return redirect(url_for('jwt.index'))
-            #登录已过期，需重新登录
+        if payload_content=="无效token":
+                return redirect(url_for('jwt.index'))
+        else:
+            if payload_content['exp'] < int(time.time()):
+                return redirect(url_for('jwt.index'))
+                #登录已过期，需重新登录
         return func(*args,**kwargs)
     return wrapper
 
@@ -80,6 +83,11 @@ def my_token_test():
     token_content=request.headers['Authorization']
     payload_content=tokenFeature.get_decoded(tokenFeature,token_content)
     return jsonify(payload_content)
+
+@bp.route('/sb')
+def index():
+    return 'wocao'
+
 
 
 #题外话。token的内容应该是可以客户端修改的吧，那黑客修改之后我们可以识别出来吗？

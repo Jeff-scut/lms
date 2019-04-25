@@ -18,3 +18,6 @@ def close_db():
     if connect is not None:
         connect.close()
     #关闭连接
+
+
+
