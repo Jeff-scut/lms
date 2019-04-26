@@ -17,20 +17,16 @@ def download_materials():
         materials_name=request.form['materials_name']
         try:
             value = [account, name, course_id, materials_id, materials_name]
-            try:
-                cursor.execute(
-                'insert into download_materials values(%s,%s,%s,%s,%s)',value
+            cursor.execute(
+                'INSERT INTO download_materials VALUES(%s,%s,%s,%s,%s)',value
                 )
-            except:
-                print("error")
-
             get_db().commit()
-
         except:
             get_db().rollback()
+            return jsonify('数据插入失败')
         close_db()
-        return jsonify('插入成功')
-    return '这是一个GET不是POST'
+        return jsonify('操作完成')
+    return '本API只接受POST请求'
 
 
 @bp.route('/materials',methods=('GET','POST'))
@@ -43,18 +39,16 @@ def materials():
         materials_name=request.form['materials_name']
         try:
             value = [course_id, materials_id, materials_name]
-            try:
-                cursor.execute(
-                'insert into materials values(%s,%s,%s)',value
+            cursor.execute(
+                'INSERT INTO materials VALUES(%s,%s,%s)',value
                 )
-            except:
-                print("error")
             get_db().commit()
         except:
             get_db().rollback()
+            return jsonify('数据插入失败')
         close_db()
-        return jsonify('插入成功')
-    return '这是一个GET不是POST'
+        return jsonify('操作完成')
+    return '本API只接受POST请求'
 
 
 @bp.route('/learning_progress',methods=('GET','POST'))
@@ -72,18 +66,16 @@ def learning_progress():
         progress=request.form['progress']
         try:
             value = [account,name,course_id,section_id,unit_id,resource_id,resource_type,progress]
-            try:
-                cursor.execute(
-                'insert into learning_progress_values(%s,%s,%s,%s,%s,%s,%s,%s)',value
+            cursor.execute(
+                'INSERT INTO learning_progress VALUES(%s,%s,%s,%s,%s,%s,%s,%s)',value
                 )
-            except:
-                print("error")
             get_db().commit()
         except:
             get_db().rollback()
+            return jsonify('数据插入失败')
         close_db()
-        return jsonify('插入成功')
-    return '这是一个GET不是POST'
+        return jsonify('操作完成')
+    return '本API只接受POST请求'
 
 
 @bp.route('/resource',methods=('GET','POST'))
@@ -98,18 +90,16 @@ def resource():
         resource_type=request.form['resource_type']
         try:
             value = [course_id,section_id,unit_id,resource_id,resource_type]
-            try:
-                cursor.execute(
-                'insert into resource_values(%s,%s,%s,%s,%s)',value
+            cursor.execute(
+                'INSERT INTO resource VALUES(%s,%s,%s,%s,%s)',value
                 )
-            except:
-                print("error")
             get_db().commit()
         except:
             get_db().rollback()
+            return jsonify('数据插入失败')
         close_db()
-        return jsonify('插入成功')
-    return '这是一个GET不是POST'
+        return jsonify('操作完成')
+    return '本API只接受POST请求'
 
 
 @bp.route('/discussion',methods=('GET','POST'))
@@ -125,15 +115,13 @@ def discussion():
         content=request.form['content']
         try:
             value = [account,name,course_id,discussion_id,post_id,content]
-            try:
-                cursor.execute(
-                'insert into discussion_values(%s,%s,%s,%s,%s,%s)',value
+            cursor.execute(
+                'INSERT INTO discussion VALUES(%s,%s,%s,%s,%s,%s)',value
                 )
-            except:
-                print("error")
             get_db().commit()
         except:
             get_db().rollback()
+            return jsonify('数据插入失败')
         close_db()
-        return jsonify('插入成功')
-    return '这是一个GET不是POST'
+        return jsonify('操作完成')
+    return '本API只接受POST请求'
