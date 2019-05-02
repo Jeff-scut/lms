@@ -2,10 +2,12 @@ from flask import Flask
 from . import collector
 from . import jwt
 from . import myConfig
+from flask_cors import *
 
 
 def create_app(test_config=None):
     app=Flask(__name__)
+    CORS(app,supports_credentials=True)
 
     app.config.from_object(myConfig)
 
