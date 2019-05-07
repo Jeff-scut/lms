@@ -8,13 +8,19 @@ bp=Blueprint('score',__name__)
 #下面的每个都应该添加装饰器
 
 #传入学生ID和课程ID，返回嫌疑分数
-@bp.route('/getScore',methods=('GET','POST'))
-def getResource():
+@bp.route('/getScore',methods=('POST',))
+def getScore():
     account=request.form['account']
     course_id=request.form['course_id']
     score={
-        'activeScore':0,
-        'homeworkScore':0
+        'result':'success',
+        'activeScore':{
+            'progress_score':'',
+            'guidance_score':'',
+            'materials_score':'',
+            'discussion_score':''
+        },
+        'message':''
     }
 
     cursor=get_db().cursor()
@@ -26,7 +32,7 @@ def getResource():
         'SELECT credit,progress FROM learning_progress'
         ' WHERE course_id= %s AND account= %s',(course_id,account)
         )
-        #这个目前没法直接取到maxProgress，要在这里做逻辑判断/插入时直接更新
+        #这个目前没法直接取到maxProgress，要在插入时直接更新
         progress_data=cursor.fetchall()
         #progress_data是tuple
         progress_score=0
@@ -40,7 +46,7 @@ def getResource():
     #假定每下载一个+2分
     try:
         cursor.execute(
-        'SELECT COUNT(*) FROM guidance'
+        'SELECT COUNT(*) FROM download_guidance'
         ' WHERE account=%s and course_id=%s',(account,course_id)
         )
         guidance_data=cursor.fetchall()
@@ -88,12 +94,38 @@ def getResource():
         print(e)
 
     #活跃分计算完成
-    score['activeScore']=progress_score+guidance_score+materials_score+discussion_score
+    #5.7修改：分数只由活跃分构成，作为课程总分的一部分
+    #计分规则：教师设定4个部分的占比（如50+20+15+15），score=s1*50+s2*20+....
+    #s1=actualScore/fullScore s2，3，4同
+    #fullScore1可以直接计算credit和，234是人工设定=-=
+    try:
+        cursor.execute('SELECT credit FROM learning_progress WHERE account= %s AND course_id= %s',(account,course_id))
+        all_credit=cursor.fetchall()
+        progress_fullScore=0
+        for i in all_credit:
+            progress_fullScore += i[0]
 
-    return jsonify(score)
+        cursor.execute('SELECT COUNT(*) FROM guidance WHERE course_id=%s',(course_id,))
+        all_guidance=cursor.fetchall()
+        guidance_fullScore=all_guidance[0][0]*2
 
-    #作业分计算
-    #获取作业提交时间，根据排名赋分
-    # cursor.execute(
-    #     'SELECT ? FROM homework'
-    # )
+        cursor.execute('SELECT COUNT(*) FROM materials WHERE course_id=%s',(course_id,))
+        all_materials=cursor.fetchall()
+        materials_fullScore=all_materials[0][0]*1.33
+
+        #讨论的总分就直接制定上限了，挺合理的，避免灌水= =..
+    except:
+        return '查询出错，账号/课程ID输入错误'
+
+    if progress_fullScore==0 or guidance_fullScore==0 or materials_fullScore==0:
+        score['result']='fail'
+        score['message']='非法数据，请仔细检查是否输错'
+        score['activeScore']=None
+        return jsonify(score)
+        #这个是为了避免因为输错而fullScore=0，0又不能作为（被？）除数
+    else:
+        score['activeScore']['progress_score']=progress_score/progress_fullScore
+        score['activeScore']['guidance_score']=guidance_score/guidance_fullScore
+        score['activeScore']['materials_score']=materials_score/materials_fullScore
+        score['activeScore']['discussion_score']=discussion_score/20
+        return jsonify(score)
