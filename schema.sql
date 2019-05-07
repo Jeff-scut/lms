@@ -12,17 +12,19 @@ CREATE TABLE IF NOT EXISTS `learning_progress`(
   `resource_type` CHAR(2) ,
   `progress` CHAR(5) ,
   `credit` INT ,
-  PRIMARY KEY ( `account`,`id` )
+  PRIMARY KEY (`id` )
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `resource`(
   `course_id` CHAR(20),
   `section_id` CHAR(10) ,
   `unit_id` CHAR(10) ,
+  `unit_name` CHAR(80),
   `resource_id` CHAR(10) NOT NULL,
   `resource_type` CHAR(2) ,
   PRIMARY KEY (`resource_id` )
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- 补充了unit_name字段
 
 
 CREATE TABLE IF NOT EXISTS `download_materials`(
@@ -69,10 +71,11 @@ CREATE TABLE IF NOT EXISTS `guidance`(
   )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 BEGIN;
-INSERT INTO `learning_progress` VALUES ('201630610496','黄基峰','0001','0001-01','0001-01-01','123','0','0.28',5),
-('201630610496','黄基峰','0001','0001-01','0001-01-01','124','0','0.85',10),
-('201630610496','黄基峰','0001','0001-01','0001-01-01','125','0','0.10',3),
-('201630610496','黄基峰','0001','0001-01','0001-01-01','126','0','0.33',5);
+INSERT INTO `learning_progress` (account,name,course_id,unit_id,resource_id,progress,credit) VALUES
+('201630610496','黄基峰','0001','0001-01','123','0.28',5),
+('201630610496','黄基峰','0001','0001-01','124','0.85',10),
+('201630610496','黄基峰','0001','0001-01','125','0.10',3),
+('201630610496','黄基峰','0001','0001-01','126','0.33',5);
 COMMIT;
 
 BEGIN;
@@ -98,4 +101,11 @@ BEGIN;
 INSERT INTO `discussion` (account,course_id,discussion_id,post_id,content) VALUES
 ('201630610496','0001','dis9528','dis9527','emmm'),
 ('201630610496','0001','dis2796','dis2795','因为我要赶紧做这个呀');
+COMMIT;
+
+BEGIN;
+INSERT INTO resource (course_id,unit_name,resource_id) VALUES
+('0001','1+1=？','12345'),
+('0001','非线性偏微分方程','12346'),
+('0001','试一试！','12347');
 COMMIT;
