@@ -81,7 +81,7 @@ def getScore():
         discussion_score=0
         for j in discussion_data:
             if j[0]!=None:
-                if j[1]==None:
+                if j[1]==None or j[1]=='NULL':
                     discussion_score+=2.55
                 else:
                     discussion_score+=1.26

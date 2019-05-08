@@ -58,16 +58,17 @@ def login_required(func):
     #保留源信息，本质是endpoint装饰，否则修改函数名很危险
     #上面这个对wraps(func)的注释我自己也不懂...
     def wrapper(*args,**kwargs):
-        token_to_decode=request.headers['Authorization']
-        if not token_to_decode:
-            return redirect('jwt.index')#此处待修改
-        payload_content=tokenFeature.get_decoded(tokenFeature,token_to_decode)
-        if payload_content=="无效token":
-                return redirect(url_for('jwt.index'))
+        if request.headers['Authorization']!=None:
+            token_to_decode=request.headers['Authorization']
+            payload_content=tokenFeature.get_decoded(tokenFeature,token_to_decode)
+            if payload_content=="无效token":
+                    return redirect(url_for('jwt.errorPort'))
+            else:
+                if payload_content['exp'] < int(time.time()):
+                    return redirect(url_for('jwt.errorPort'))
+                    #登录已过期，需重新登录
         else:
-            if payload_content['exp'] < int(time.time()):
-                return redirect(url_for('jwt.index'))
-                #登录已过期，需重新登录
+            return '请重新登录'
         return func(*args,**kwargs)
     return wrapper
 
@@ -84,9 +85,9 @@ def my_token_test():
     payload_content=tokenFeature.get_decoded(tokenFeature,token_content)
     return jsonify(payload_content)
 
-@bp.route('/sb')
-def index():
-    return 'wocao'
+@bp.route('/errorPort')
+def errorPort():
+    return '校验失败，请重新登录'
 
 
 
