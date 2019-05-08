@@ -21,23 +21,34 @@ def def_progress():
     }
     cursor=get_db().cursor()
 
-    cursor.execute(
-        'SELECT learning_progress.name,resource.unit_name,learning_progress.progress'
-        ' FROM learning_progress,resource'
-        ' WHERE learning_progress.resource_id=resource.resource_id'
-        ' AND learning_progress.account= %s AND learning_progress.course_id= %s',(account,course_id)
-    )
-    columnName=(('studentName','unitName','progress'), )
-    #把元组的形式写成( (), )就可以把这个columnName做一个完整的元组加进去了
-    progress_det['progress_det']+=columnName
-    progress_det['progress_det']+=cursor.fetchall()
+    try:
+        cursor.execute(
+            'SELECT learning_progress.name,resource.unit_name,learning_progress.progress'
+            ' FROM learning_progress,resource'
+            ' WHERE learning_progress.resource_id=resource.resource_id'
+            ' AND learning_progress.account= %s AND learning_progress.course_id= %s',(account,course_id)
+        )
+        columnName=(('studentName','unitName','progress'), )
+        #把元组的形式写成( (), )就可以把这个columnName做一个完整的元组加进去了
+        progress_det['progress_det']+=columnName
+        progress_det['progress_det']+=cursor.fetchall()
+        return jsonify(progress_det)
     #无解无解，数据库查询操作出来的结果一定是（'201630610496','黄基峰'，'....'...)这样的元组
     #没法给它改成键值对的形式
-    return jsonify(progress_det)
+    except Exception as e:
+        progress_det['result']='fail'
+        return jsonify(progress_det)
+
 
 @bp.route('/det_guidance',methods=('POST',))
 #@login_required
 def det_guidance():
+    account=request.form['account']
+    course_id=request.form['course_id']
+    guidance_det={
+        'result':'success',
+        'guidance_det':()
+    }
     cursor=get_db().cursor()
     cursor.execute(
         ''
