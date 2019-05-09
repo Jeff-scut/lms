@@ -4,6 +4,7 @@ from . import jwt
 from . import myConfig
 from . import score
 from . import details
+from . import compare
 from flask_cors import *
 
 
@@ -17,6 +18,7 @@ def create_app(test_config=None):
     app.register_blueprint(collector.bp)
     app.register_blueprint(score.bp)
     app.register_blueprint(details.bp)
+    app.register_blueprint(compare.bp)
     # 蓝图的注册
 
     return app
