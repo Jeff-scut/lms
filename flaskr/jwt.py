@@ -58,17 +58,16 @@ def login_required(func):
     #保留源信息，本质是endpoint装饰，否则修改函数名很危险
     #上面这个对wraps(func)的注释我自己也不懂...
     def wrapper(*args,**kwargs):
-        if request.headers['Authorization']!=None:
-            token_to_decode=request.headers['Authorization']
+        isExist=request.headers.get('Authorization')
+        if isExist!=None:
+            token_to_decode=isExist
             payload_content=tokenFeature.get_decoded(tokenFeature,token_to_decode)
             if payload_content=="无效token":
-                    return redirect(url_for('jwt.errorPort'))
-            else:
-                if payload_content['exp'] < int(time.time()):
-                    return redirect(url_for('jwt.errorPort'))
-                    #登录已过期，需重新登录
+                return redirect(url_for('jwt.errorPort'))
+            if payload_content=='token已过期':
+                return payload_content
         else:
-            return '请重新登录'
+            return 'http请求错误，请检查requestHeader'
         return func(*args,**kwargs)
     return wrapper
 
