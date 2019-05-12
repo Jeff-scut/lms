@@ -10,13 +10,15 @@ bp=Blueprint('compare',__name__,url_prefix='/compare')
 def allFactors():
     course_id=request.form['course_id']
     account=request.form['account']
+    homework_id=request.form['homework_id']
     list_acc=account.split(",")
     cursor=get_db().cursor()
 
     factors_response={
         'result':'success',
         'progress_list':[],
-        'others_list':[]
+        'others_list':[],
+        'homework_list':[]
     }
 
     for i in list_acc:
@@ -32,6 +34,11 @@ def allFactors():
             'guidanceCnt': 0,
             'materialsCnt': 0
         }#额..突然发现这个取名有点奇怪each others...本意是每一个人的otherFactors...
+        each_homework={
+            'account': i,
+            'name': "",
+            'submitTime': ""
+        }
 
         try:
             #part1 计算总的unit个数
@@ -44,6 +51,7 @@ def allFactors():
             if totalUnit==0:
                 factors_response['progress_list'].append(each_progress)
                 factors_response['others_list'].append(each_others)
+                factors_response['homework_list'].append(each_homework)
                 continue
                 #使用continue可以跳出本次循环，break则会结束整个for
                 #这是为了避免因为帐号不存在而下面除以0报错
@@ -109,6 +117,18 @@ def allFactors():
             each_others['materialsCnt']=materialsCnt[0][0]
 
             factors_response['others_list'].append(each_others)
+        except Exception as e:
+            print(e)
+
+        try:
+            cursor.execute(
+                'SELECT name,submit_time FROM homeworkTime'
+                ' WHERE account=%s AND homework_id=%s',(i,homework_id)
+            )
+            homework=cursor.fetchall()
+            each_homework['name']=homework[0][0]
+            each_homework['submitTime']=homework[0][1]
+            factors_response['homework_list'].append(each_homework)
         except Exception as e:
             print(e)
 
