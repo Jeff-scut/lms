@@ -5,6 +5,7 @@ from . import myConfig
 from . import score
 from . import details
 from . import compare
+from . import common
 from flask_cors import *
 
 
@@ -19,6 +20,7 @@ def create_app(test_config=None):
     app.register_blueprint(score.bp)
     app.register_blueprint(details.bp)
     app.register_blueprint(compare.bp)
+    app.register_blueprint(common.bp)
     # 蓝图的注册
 
     return app

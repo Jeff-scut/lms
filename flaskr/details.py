@@ -39,17 +39,118 @@ def def_progress():
         progress_det['result']='fail'
         return jsonify(progress_det)
 
+#展示个人下载的所有资源库东西
+@bp.route('/det_materials',methods=('POST',))
+@login_required
+def det_materials():
+    account=request.form['account']
+    course_id=request.form['course_id']
+    materials_det={
+        'result':'success',
+        'materials_det':[]
+    }
+    cursor=get_db().cursor()
 
+    try:
+        cursor.execute(
+            'SELECT materials_id,materials_name FROM download_materials'
+            ' WHERE account=%s AND course_id=%s',(account,course_id)
+        )
+        materials_down=cursor.fetchall()
+        for i in materials_down:
+            each_mat={
+                'materials_id':i[0],
+                'materials_name':i[1]
+            }
+            materials_det['materials_det'].append(each_mat)
+    except Exception as e:
+        raise
+    return jsonify(materials_det)
+
+#展示个人下载的所有辅导材料
 @bp.route('/det_guidance',methods=('POST',))
-#@login_required
+@login_required
 def det_guidance():
     account=request.form['account']
     course_id=request.form['course_id']
     guidance_det={
         'result':'success',
-        'guidance_det':()
+        'guidance_det':[]
     }
     cursor=get_db().cursor()
-    cursor.execute(
-        ''
-    )
+
+    try:
+        cursor.execute(
+            'SELECT guidance_id,guidance_name FROM download_guidance'
+            ' WHERE account=%s AND course_id=%s',(account,course_id)
+        )
+        guidance_down=cursor.fetchall()
+        for i in guidance_down:
+            each_gui={
+                'guidance_id':i[0],
+                'guidance_name':i[1]
+            }
+            guidance_det['guidance_det'].append(each_gui)
+    except Exception as e:
+        raise
+    return jsonify(guidance_det)
+
+#根据需求返回所有内容...
+@bp.route('/listAll',methods=('POST',))
+@login_required
+def listAll():
+    account=request.form['account']
+    course_id=request.form['course_id']
+    homework_id=request.form['homework_id']
+    cursor=get_db().cursor()
+    listAll_res={
+        'result':"success",
+        'userId':"",
+        'userName':"",
+        'individualBehavior':{
+            'submitTime':"",
+            'progress':[],
+            'discussionCnt':[],
+            'materialsCnt':[],
+            'guidanceCnt':[],
+            'discussionRecord':[],
+            'downloadRecord':[]
+        }
+    }
+
+    #part0 获取作业提交时间
+    try:
+        cursor.execute(
+            'SELECT submit_time FROM homeworkTime'
+            ' WHERE account=%s AND homework_id=%s',(account,homework_id)
+        )
+        submitTime=cursor.fetchall()
+        submitTime=submitTime[0][0]
+        listAll_res['individualBehavior']['submitTime']=submitTime
+    except Exception as e:
+        raise
+
+    #part1 获取个人本课程的学习进度，顺便把名字放到response里
+    # try:
+    #     cursor.execute(
+    #         'SELECT COUNT(DISTINCT unit_id) FROM learning_progress'
+    #         ' WHERE account=%s AND course_id=%s',(account,course_id)
+    #     )
+    #     totalUnit=cursor.fetchall()
+    #     totalUnit=totalUnit[0][0]
+    #     #不对，怎么获取某一天的...
+    #     cursor.execute(
+    #         'SELECT MIN(name),unit_id,MAX(progress) FROM learning_progress'
+    #         ' WHERE account=%s AND course_id=%s'
+    #         ' GROUP BY unit_id',(account,course_id)
+    #     )
+    #
+    # except Exception as e:
+    #     raise
+
+    #获取资源下载情况
+
+
+    get_db().commit()
+
+    return jsonify(listAll_res)
