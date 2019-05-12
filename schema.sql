@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `discussion`(
 CREATE TABLE IF NOT EXISTS `learning_progress`(
   `id` INT NOT NULL AUTO_INCREMENT,
   `account` CHAR(20) NOT NULL,
-  `username` CHAR(20) ,
+  `name` CHAR(20) ,
   `course_id` CHAR(20) ,
   `unit_id` CHAR(20),
   `resource_id` CHAR(10) ,

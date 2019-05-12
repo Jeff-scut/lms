@@ -120,9 +120,9 @@ def learning_progress():
                 create_time
             )
             cursor.execute(
-                'INSERT INTO learning_progress (account,username,course_id,unit_id,resource_id,resource_type,cur_time,duration,progress,credit,create_time) VALUES'
+                'INSERT INTO learning_progress (account,name,course_id,unit_id,resource_id,resource_type,cur_time,duration,progress,credit,create_time) VALUES'
                 '(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',value
-            )
+            )#我还是把learning_progress表的name字段名字改回来了...因为其他好多写完的语句是用了name，不想改了！
             get_db().commit()
         except Exception as e:
             get_db().rollback()
@@ -274,11 +274,9 @@ def download_guidance():
         return jsonify('操作完成')
     return '本API只接受POST请求'
 
-#TODO: 作业记录接口
-
 
 @bp.route('/homeworkTime',methods=('POST',))
-#@login_required
+@login_required
 def homeworkTime():
     cursor=get_db().cursor()
     if request.method=='POST':
