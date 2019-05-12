@@ -89,14 +89,15 @@ CREATE TABLE IF NOT EXISTS `discussion`(
 CREATE TABLE IF NOT EXISTS `learning_progress`(
   `id` INT NOT NULL AUTO_INCREMENT,
   `account` CHAR(20) NOT NULL,
-  `name` CHAR(20) ,
+  `username` CHAR(20) ,
   `course_id` CHAR(20) ,
-  `section_id` CHAR(10) ,
   `unit_id` CHAR(20),
   `resource_id` CHAR(10) ,
   `resource_type` CHAR(2) ,
-  `progress` CHAR(5) ,
-  `credit` INT ,
+  `cur_time` CHAR(20),
+  `duration` CHAR(20),
+  `progress` CHAR(20) ,
+  `credit` CHAR(20) ,
   `create_time` DATETIME,
   PRIMARY KEY (`id` )
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

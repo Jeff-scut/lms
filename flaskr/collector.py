@@ -1,9 +1,17 @@
-from flask import(Blueprint,g,jsonify,request)
+from flask import(Blueprint,g,jsonify,request,make_response)
 from flaskr.createDB import (get_db,close_db)
 import pymysql
 from  flaskr.jwt import login_required
+import time
+
+format="%Y-%m-%d %H:%M:%S"
 
 bp=Blueprint('collector',__name__)
+
+
+def formatTime(t):
+    return time.strftime(format,t)
+
 
 @bp.route('/download_materials',methods=('POST',))
 @login_required
@@ -80,30 +88,55 @@ def materials():
 @login_required
 def learning_progress():
     cursor=get_db().cursor()
+    credit_weight=0.3
     if request.method=='POST':
         account=request.form['account']
-        name=request.form['name']
+        username=request.form['name']
         course_id = request.form['course_id']
         section_id = request.form['section_id']
         unit_id = request.form['unit_id']
         resource_id = request.form['resource_id']
         resource_type=request.form['resource_type']
-        progress=request.form['progress']
-        credit=request.form['credit']#前端根据pdf页数/视频时长计算credit
+        #视频实际播放时长
+        cur_time = request.form['current_time']
+        #视频总时长
+        duration=request.form['duration']
+        #进度最大为1.0
+        progress=str(1.0 if(round(int(cur_time)/int(duration),2)>=1.0) else round(int(cur_time)/int(duration),2))
         create_time=request.form['create_time']
+        credit=str(int(duration)*credit_weight)
         try:
-            value = [account,name,course_id,section_id,unit_id,resource_id,resource_type,progress,credit,create_time]
+            value = (
+                account,
+                username,
+                course_id,
+                unit_id,
+                resource_id,
+                resource_type,
+                cur_time,
+                duration,
+                progress,
+                credit,
+                create_time
+            )
             cursor.execute(
-                'INSERT INTO learning_progress '
-                ' (account,name,course_id,section_id,unit_id,resource_id,resource_type,progress,credit,create_time)'
-                ' VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',value
+                'INSERT INTO learning_progress (account,username,course_id,unit_id,resource_id,resource_type,cur_time,duration,progress,credit,create_time) VALUES'
+                '(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',value
             )
             get_db().commit()
-        except:
+        except Exception as e:
             get_db().rollback()
-            return jsonify('数据插入失败')
-        close_db()
-        return jsonify('操作完成')
+            print(e)
+            return jsonify({
+            'result':'failed',
+            'message':'操作失败'
+            })
+        get_db().close()
+
+        return jsonify({
+            'result':'success',
+            'message':'操作完成'
+        })
     return '本API只接受POST请求'
 
 
@@ -242,3 +275,55 @@ def download_guidance():
     return '本API只接受POST请求'
 
 #TODO: 作业记录接口
+
+
+@bp.route('/homeworkTime',methods=('POST',))
+#@login_required
+def homeworkTime():
+    cursor=get_db().cursor()
+    if request.method=='POST':
+        account=request.form['account']
+        name=request.form['name']
+        course_id=request.form['course_id']
+        homework_id=request.form['homework_id']
+        submit_time=request.form['submit_time']
+        try:
+            value=(account,name,course_id,homework_id,submit_time)
+            cursor.execute(
+                'INSERT INTO homeworkTime (account,name,course_id,homework_id,submit_time) VALUES'
+                '(%s,%s,%s,%s,%s)',value
+            )
+            get_db().commit()
+        except Exception as e:
+            get_db().rollback()
+            return jsonify({
+                'result':'failed',
+                'message':'操作失败'
+            })
+        get_db().close()
+        return jsonify({
+             'result':'success',
+            'message':'操作成功'
+        })
+
+
+@bp.route('/getCurrentTime',methods=('GET',))
+@login_required
+def getCurrentTime():
+    cursor=get_db().cursor()
+    if request.method=='GET':
+        account=request.args['account']
+        resource_id=request.args['resource_id']
+        cursor.execute(
+            'SELECT resource_id,cur_time FROM learning_progress WHERE account=%s AND resource_id=%s',
+            (account,resource_id)
+        )
+        data=cursor.fetchall()
+        if not data:
+            current_time=0
+        else:
+            current_time=data[-1][1]
+        return jsonify({
+            'resource_id':resource_id,
+            'current_time':current_time
+        })

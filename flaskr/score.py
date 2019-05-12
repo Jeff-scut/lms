@@ -37,7 +37,7 @@ def getScore():
         #progress_data是tuple
         progress_score=0
         for i in progress_data:
-            progress_score += (i[0]*float(i[1]))
+            progress_score += (float(i[0])*float(i[1]))
     except Exception as e:
         print("课程进度得分查询出错，详细信息：")
         print(e)
