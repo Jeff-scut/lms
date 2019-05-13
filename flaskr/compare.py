@@ -127,7 +127,7 @@ def allFactors():
             )
             homework=cursor.fetchall()
             each_homework['name']=homework[0][0]
-            each_homework['submitTime']=homework[0][1]
+            each_homework['submitTime']=str(homework[0][1])
             factors_response['homework_list'].append(each_homework)
         except Exception as e:
             print(e)

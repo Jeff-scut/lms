@@ -3,6 +3,7 @@ from flaskr.createDB import (get_db,close_db)
 import pymysql
 from  flaskr.jwt import login_required
 import datetime
+from collections import Counter
 
 #同样，需要添加装饰器；测试阶段暂时不加
 
@@ -69,7 +70,7 @@ def det_guidance():
     close_db()
     return jsonify(guidance_det)
 
-#根据需求返回所有内容...
+#根据需求返回所有内容... 卧槽，忘记userid和username了...
 @bp.route('/listAll',methods=('POST',))
 @login_required
 def listAll():
@@ -126,12 +127,22 @@ def listAll():
             ' GROUP BY create_time',(account,course_id)
         )
         aaa=cursor.fetchall()
+        templistA=[]
+        templistB=[]
         for i in aaa:
             axiba={
                 'count':i[0],
                 'date':str(i[1].date())
             }
-            listAll_res['individualBehavior']['materialsCnt'].append(axiba)
+            templistA.append(axiba)
+        for data in templistA:
+            templistB.append(data['date'])
+        tempDict=dict(Counter(templistB))
+        for (key,value) in tempDict.items():
+            zhongjie=dict()
+            zhongjie['count']=value
+            zhongjie['date']=key
+            listAll_res['individualBehavior']['materialsCnt'].append(zhongjie)
     except Exception as e:
         raise
 
@@ -143,30 +154,51 @@ def listAll():
             ' GROUP BY create_time',(account,course_id)
         )
         aaa=cursor.fetchall()
+        templistA=[]
+        templistB=[]
         for i in aaa:
             jiuminga={
                 'count':i[0],
                 'date':str(i[1].date())
             }
-            listAll_res['individualBehavior']['guidanceCnt'].append(jiuminga)
+            templistA.append(jiuminga)
+        for data in templistA:
+            templistB.append(data['date'])
+        tempDict=dict(Counter(templistB))
+        for (key,value) in tempDict.items():
+            zhongjie=dict()
+            zhongjie['count']=value
+            zhongjie['date']=key
+            listAll_res['individualBehavior']['guidanceCnt'].append(zhongjie)
     except Exception as e:
         raise
 
     #讨论参与次数
     try:
         #通过这次开发，感觉写sql语句的能力得到了不少锻炼...顺便发掘了一下format的用法
+        #5.13：发掘个屁= =...会报错...这谁顶得住啊
         cursor.execute(
-            'SELECT COUNT(DISTINCT discussion_id),DATE_FORMAT(create_time,"%Y-%m-%d") FROM discussion'
-            ' WHERE account={0} AND course_id={1}'
-            ' GROUP BY DATE_FORMAT(create_time,"%Y-%m-%d")'.format(account,course_id)
+            'SELECT COUNT(DISTINCT discussion_id),create_time FROM discussion'
+            ' WHERE account=%s AND course_id=%s'
+            ' GROUP BY create_time',(account,course_id)
         )
         aaa=cursor.fetchall()
+        templistA=[]
+        templistB=[]
         for i in aaa:
             yaolewoba={
                 'count':i[0],
-                'date':i[1]
+                'date':str(i[1].date())
             }
-            listAll_res['individualBehavior']['discussionCnt'].append(yaolewoba)
+            templistA.append(yaolewoba)
+        for data in templistA:
+            templistB.append(data['date'])
+        tempDict=dict(Counter(templistB))
+        for (key,value) in tempDict.items():
+            zhongjie=dict()
+            zhongjie['count']=value
+            zhongjie['date']=key
+            listAll_res['individualBehavior']['discussionCnt'].append(zhongjie)
     except Exception as e:
         raise
 
@@ -174,7 +206,7 @@ def listAll():
     try:
         cursor.execute(
             'SELECT post_id,content,create_time FROM discussion'
-            ' WHERE account={} AND course_id={}'.format(account,course_id)
+            ' WHERE account=%s AND course_id=%s',(account,course_id)
         )
         aaa=cursor.fetchall()
         if aaa==():

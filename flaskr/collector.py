@@ -93,7 +93,6 @@ def learning_progress():
         account=request.form['account']
         username=request.form['name']
         course_id = request.form['course_id']
-        section_id = request.form['section_id']
         unit_id = request.form['unit_id']
         resource_id = request.form['resource_id']
         resource_type=request.form['resource_type']
@@ -146,13 +145,12 @@ def resource():
     cursor=get_db().cursor()
     if request.method=='POST':
         course_id = request.form['course_id']
-        section_id = request.form['section_id']
         unit_id = request.form['unit_id']
         unit_name=request.form['unit_name']
         resource_id = request.form['resource_id']
         resource_type=request.form['resource_type']
         try:
-            value = [course_id,section_id,unit_id,unit_name,resource_id,resource_type]
+            value = [course_id,unit_id,unit_name,resource_id,resource_type]
             cursor.execute(
                 'SELECT COUNT(*) FROM resource WHERE unit_id=%s and resource_type=%s '
                 ,(unit_id,resource_type)
@@ -161,8 +159,8 @@ def resource():
             if isExist!=None:
                 if isExist[0][0]==0:
                     cursor.execute(
-                        'INSERT INTO resource (course_id,section_id,unit_id,unit_name,resource_id,resource_type)'
-                        'VALUES(%s,%s,%s,%s,%s,%s)',value
+                        'INSERT INTO resource (course_id,unit_id,unit_name,resource_id,resource_type)'
+                        'VALUES(%s,%s,%s,%s,%s)',value
                         )
                 else:
                     cursor.execute(
@@ -216,11 +214,10 @@ def guidance():
     if request.method=='POST':
         course_id=request.form['course_id']
         unit_id=request.form['unit_id']
-        section_id=request.form['section_id']
         guidance_id=request.form['guidance_id']
         guidance_name=request.form['guidance_name']
         try:
-            value=[course_id,unit_id,section_id,guidance_id,guidance_name]
+            value=[course_id,unit_id,guidance_id,guidance_name]
             #检查本unit是否已有辅导资料
             cursor.execute(
                 'SELECT COUNT(*) FROM guidance WHERE course_id=%s AND unit_id=%s',(course_id,unit_id)
@@ -229,8 +226,8 @@ def guidance():
             if tempVal[0][0]!=None:
                 if tempVal[0][0]==0:
                     cursor.execute(
-                        'INSERT INTO guidance (course_id,unit_id,section_id,guidance_id,guidance_name)'
-                        ' VALUES (%s,%s,%s,%s,%s)',value
+                        'INSERT INTO guidance (course_id,unit_id,guidance_id,guidance_name)'
+                        ' VALUES (%s,%s,%s,%s)',value
                     )
                 else:
                     cursor.execute(
