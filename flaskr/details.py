@@ -100,7 +100,7 @@ def listAll():
         )
         aaa=cursor.fetchall()
         if aaa[0][0]==0:
-            return '无相应记录,请检查帐号是否输错'
+            return jsonify(listAll_res)
     except Exception as e:
         raise
 
