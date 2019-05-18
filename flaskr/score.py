@@ -2,6 +2,7 @@ from flask import(Blueprint,g,jsonify,request)
 from flaskr.createDB import (get_db,close_db)
 import pymysql
 from  flaskr.jwt import login_required
+import math
 
 bp=Blueprint('score',__name__)
 
@@ -27,7 +28,11 @@ def getScore():
             'message':''
         }
         scores=[]
+        timeList=[]
+        base_w=50.
+        susp_const=2000.
         for account in accounts:
+            progress_fullScore = progress_score = guidance_score = discussion_score = materials_score = 0
             #作业提交时间
             try:
                 cursor.execute(
@@ -39,11 +44,13 @@ def getScore():
                 print(e)
 
             data=cursor.fetchone()
+            if data:
+                submit_time=data[0]
+                timeList.append({'account':account,'submit_time':submit_time})
             score={
                 'account':account,
-                'submit_time':data[0] if(data) else '0',
-                'sbt_weight':0,
-                'act_score':0
+                'sbt_score':0.,
+                'act_score':0.
             }
 
             #课程进度得分
@@ -56,7 +63,6 @@ def getScore():
                 #这个目前没法直接取到maxProgress，要在插入时直接更新
                 progress_data=cursor.fetchall()
                 #progress_data是tuple
-                progress_score=0
                 for i in progress_data:
                     progress_score += (float(i[0])*float(i[1]))
             except Exception as e:
@@ -71,7 +77,6 @@ def getScore():
                 ' WHERE account=%s and course_id=%s',(account,course_id)
                 )
                 guidance_data=cursor.fetchall()
-                guidance_score=0
                 if guidance_data:
                     guidance_score=guidance_data[0][0]*5.0
             except Exception as e:
@@ -89,7 +94,6 @@ def getScore():
                 #加了distinct这个参数，重复值就不算
                 #其实这个加了也没用..因为建表的时候就设定了主键，不会出现重复的...
                 materials_data=cursor.fetchall()
-                materials_score=0
                 if materials_data:
                     materials_score=materials_data[0][0]*5.0
             except Exception as e:
@@ -104,13 +108,12 @@ def getScore():
                 ' WHERE account=%s AND course_id=%s',(account,course_id)
                 )
                 discussion_data=cursor.fetchall()
-                discussion_score=0
                 for data in discussion_data:
                     if data[1]=='NULL':
                         discussion_score+=5.0
                     else:
                         discussion_score+=3.0
-            
+
                     #首先检查discussion_id字段，空则为记录时出错；
                     #跟帖（postid不为空）+1.26，发起帖s's+2.55
             except Exception as e:
@@ -125,7 +128,6 @@ def getScore():
             try:
                 cursor.execute('SELECT credit FROM learning_progress WHERE account= %s AND course_id= %s',(account,course_id))
                 all_credit=cursor.fetchall()
-                progress_fullScore=0
                 for i in all_credit:
                     progress_fullScore += float(i[0])
 
@@ -145,21 +147,36 @@ def getScore():
             active_score=30*(pg_score)+guidance_score+materials_score+discussion_score
             score['act_score']=active_score
             scores.append(score)
+        #按作业提交时间降序排序
+        #下标越大的元素在以下计算中权值越大
+        #即越早提交作业的人权值分越多
+        timeList.sort(key=(lambda x:x['submit_time']))
+        if timeList:
+            w=1
+            key={
+                'submit_time':timeList[0]['submit_time'],
+                'weight':base_w*(1/w) #作业提交时间的权值，按[反比例函数(暂定)]递减
+            }
+        for i in timeList:
+            if i['submit_time']>key['submit_time']:
+                #若当前i和key作业提交时间相同，视为同一层次，否则更新到下一个层次
+                w+=1
+                key['submit_time']=i['submit_time']
+                key['weight']=base_w*(1/math.sqrt(w))
+            for j in scores:
+                if i['account']==j['account']:
+                    j['sbt_score']=key['weight'] #永远获取当前层次的权值分
 
-        scores.sort(key=(lambda a:a['submit_time']),reverse=True)
-        sum=0
-        for i in range(len(scores)):
-            sum+=(i+1)
-        for i in range(len(scores)):
-            if scores[i]['submit_time']!='0':
-                scores[i]['sbt_weight']=50*((i+1)/sum)
-
-        score=[]
+        new_score=[]
         for item in scores:
-            score.append({
+            total_score=0.
+            if item['sbt_score']+item['act_score']:
+                #计算总嫌疑值
+                total_score=round(susp_const/(item['sbt_score']+item['act_score']),2)
+            new_score.append({
                 'account':item['account'],
-                'suspicionValue':round(item['sbt_weight']+item['act_score'],2)
+                'suspicionValue':total_score
             })
 
-        scoreResult['score']=score
+        scoreResult['score']=new_score
         return jsonify(scoreResult)

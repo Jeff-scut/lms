@@ -101,7 +101,16 @@ def learning_progress():
         #视频总时长
         duration=request.form['duration']
         #进度最大为1.0
-        progress=str(1.0 if(round(int(cur_time)/int(duration),2)>=1.0) else round(int(cur_time)/int(duration),2))
+        progress='0'
+        if not (int(cur_time) and int(duration)):
+            return jsonify({
+                'result':'failed',
+                'message':'操作失败'
+            })
+        if int(cur_time)/int(duration) <1.0:
+            progress=str(round(int(cur_time)/int(duration),2))
+        else:
+            progress="1.0"
         create_time=request.form['create_time']
         credit=str(int(duration)*credit_weight)
         try:
@@ -314,11 +323,11 @@ def getCurrentTime():
             (account,resource_id)
         )
         data=cursor.fetchall()
-        if not data:
-            current_time=0
-        else:
+        current_time=0
+        if data:
             current_time=data[-1][1]
         return jsonify({
+            'result':'success',
             'resource_id':resource_id,
             'current_time':current_time
         })
